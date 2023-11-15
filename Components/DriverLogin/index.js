@@ -1,26 +1,60 @@
 import React, {useContext} from 'react';
-import { View, Text, Button, TouchableHighlight } from 'react-native';
+import { View, TouchableHighlight } from 'react-native';
+import { TextInput, Text } from 'react-native-paper'
 import { AuthContext } from '../../Context/authenticationContext';
 
+const DriverLogin = () => {
 
-
-const DriverLogin = (props) => {
-
-  const loginClicked = () => {
-    props.navigation.navigate("Driver View")
-  }
+  const [usernameInput, updateUsernameInput] = React.useState("user1");
+  const [passwordInput, updatePasswordInput] = React.useState("password1")
 
   const {login} = useContext(AuthContext)
 
+  const loginPressed =  async() => {
+    
+    const userDetails = {
+      username: usernameInput,
+      password: passwordInput,
+    }
 
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{color: 'black'}}>This is Driver Login Page</Text>
-        <TouchableHighlight style={StudentLoginStyles.button} mode="contained" onPress={() => {login("Driver")}} >
+    const url = 'https://student-bus-locator.onrender.com/driver/login/'
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(userDetails),
+    }
+
+    const response = await fetch(url,options)
+    const data = await response.json()
+
+
+    const {jwtToken, dbUser} = data
+    if (jwtToken !== undefined){
+      login("Driver", jwtToken, dbUser)
+    }
+
+
+    
+  }
+
+
+  return (
+    <View style={StudentLoginStyles.bgContainer}>
+      <Text variant='headlineSmall'>Login</Text>
+      <View style={StudentLoginStyles.formContainer}>
+        <Text variant="titleMedium" style={StudentLoginStyles.formLabel}>Username</Text>
+        <TextInput style={StudentLoginStyles.userTextInput} mode='outlined' label="Enter your Username" value={usernameInput} onChangeText={text => updateUsernameInput(text)} />
+        <Text variant="titleMedium" style={StudentLoginStyles.formLabel}>Password</Text>
+        <TextInput style={StudentLoginStyles.userTextInput} mode='outlined' label="Enter your Password" secureTextEntry value={passwordInput} onChangeText={text => updatePasswordInput(text)} />
+        <TouchableHighlight style={StudentLoginStyles.button} mode="contained" onPress={() => {loginPressed()}}>
           <Text style={StudentLoginStyles.buttonText} >Submit</Text>
         </TouchableHighlight>
       </View>
-    );
-  }
-  
+    </View>
+  );
+}
+
 export default DriverLogin

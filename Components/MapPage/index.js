@@ -2,10 +2,12 @@ import React, { useState, useContext, useEffect } from 'react';
 import { ScrollView, View, Text, Button, StyleSheet } from 'react-native';
 import StepIndicator from 'react-native-step-indicator';
 import BusesSelectList from '../BusesSelectList'
-import DriverDetailsPopUp from '../DriverDetailsPopUp'
 import { AuthContext } from '../../Context/authenticationContext';
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { Modal, Portal, PaperProvider } from 'react-native-paper';
+import Modal from "react-native-modal";
+import { DataTable } from 'react-native-paper';
+
+
 
 
 const data = [
@@ -36,20 +38,20 @@ const MapPage = (props) => {
 
     const [currentPosition, SetCurrentPositon] = useState(0)
     const [busesList, updateBusesList] = useState([])
-    const [activeBus, updateActiveBus] = useState('1')
+    const [activeBus, updateActiveBus] = useState()
     const [stopsList, updateStopsList] = useState(data)
-    const [driverDetails, updateDriverDetails] = useState({})
+    const [driverDetails, updateDriverDetails] = useState([])
+    const [isModalVisible, setModalVisible] = useState(false);
 
-    const [visible, setVisible] = React.useState(false);
-
-  const showModal = () => setVisible(true);
-  const hideModal = () => setVisible(false);
-  const containerStyle = {backgroundColor: 'white', padding: 0};
-
+    const toggleModal = () => {
+        setModalVisible(!isModalVisible);
+    };
 
 
 
-    const { logout } = useContext(AuthContext)
+
+
+
 
     const updateStop = () => {
         if (currentPosition < data.length) {
@@ -84,6 +86,7 @@ const MapPage = (props) => {
 
         updateBusesList(data)
 
+
     }
 
     const getStops = async () => {
@@ -99,7 +102,6 @@ const MapPage = (props) => {
 
         const response = await fetch(url, options)
         const responseData = await response.json()
-
 
         updateStopsList(responseData)
 
@@ -121,7 +123,8 @@ const MapPage = (props) => {
         let responseData = await response.json()
         const { driver_id } = responseData
 
-        url = `https://student-bus-locator.onrender.com/driver/${driver_id}`
+
+        url = `https://student-bus-locator.onrender.com/drivers/`
         options = {
             method: 'GET',
             headers: {
@@ -131,10 +134,33 @@ const MapPage = (props) => {
 
         response = await fetch(url, options)
         responseData = await response.json()
+        const driversList = responseData.data
 
-        updateDriverDetails(responseData)
+        let driverObj = driversList.filter(each => each.driver_id == driver_id)
+        driverObj = driverObj[0]
 
+        const driverKeysList = {
+            "driver_name": "Driver Name",
+            "phone_number": "Phone Number",
+            "bus_id": "Bus Number"
+        }
 
+        let driverDetails = []
+
+        for (const key in driverObj) {
+            if (driverKeysList[key] !== undefined) {
+                driverDetails.push({ key: driverKeysList[key], value: driverObj[key] });
+            }
+        }
+
+        updateDriverDetails(driverDetails)
+
+        // if(driverKeysList !== undefined){
+        //     updateDriverDetails([])
+        // }
+        // else{
+        // updateDriverDetails(driverDetails)
+        // }
 
 
     }
@@ -187,10 +213,9 @@ const MapPage = (props) => {
             <View style={{ flex: 1, padding: 20, height: 1100, backgroundColor: 'white' }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' }}>
                     <BusesSelectList busesList={busesList} updateBus={updateBus} activeBus={activeBus} />
-                    <Button title="Driver Details" />
-                    {/* <DriverDetailsPopUp/> */}
+                    <Button title="Driver Details" onPress={toggleModal} />
                 </View>
-                
+
 
                 <StepIndicator
                     customStyles={customStyles}
@@ -200,13 +225,25 @@ const MapPage = (props) => {
                     stepCount={stopNames.length}
                 />
 
-
-                
+                <Modal isVisible={isModalVisible}>
+                    <View style={{ backgroundColor: 'white' }}>
+                    {/* <DataTable>
+                            {
+                                driverDetails.map(each => (
+                                    <DataTable.Row key={each.key}>
+                                        <DataTable.Cell>{each.key}</DataTable.Cell>
+                                        <DataTable.Cell>{each.value}</DataTable.Cell>
+                                    </DataTable.Row>
+                                ))
+                            }
+                        </DataTable> */}
+                        <Button title="Close" onPress={toggleModal} />
+                    </View>
+                </Modal>
 
 
                 <Button title="Next" onPress={updateStop} />
                 <Text> </Text>
-                <Button title='Logout' onPress={() => { logout() }} />
             </View>
         </ScrollView>
     );

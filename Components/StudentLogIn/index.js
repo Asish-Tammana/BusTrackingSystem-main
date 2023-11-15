@@ -4,16 +4,15 @@ import { TextInput, Text } from 'react-native-paper'
 import StudentLoginStyles from './StudentLoginStyles';
 import { AuthContext } from '../../Context/authenticationContext';
 
-const StudentLogin = (props) => {
+const StudentLogin = () => {
 
-  const [usernameInput, updateUsernameInput] = React.useState("Asish");
-  const [passwordInput, updatePasswordInput] = React.useState("Asish@2003")
+  const [usernameInput, updateUsernameInput] = React.useState("chandhana");
+  const [passwordInput, updatePasswordInput] = React.useState("chandhana@2003")
 
   const {login} = useContext(AuthContext)
 
   const loginPressed =  async() => {
     
-
     const userDetails = {
       user_name: usernameInput,
       password: passwordInput,
@@ -32,8 +31,9 @@ const StudentLogin = (props) => {
     const response = await fetch(url,options)
     const data = await response.json()
 
-    const {jwtToken, dbUser} = data
 
+
+    const {jwtToken, dbUser} = data
     if (jwtToken !== undefined){
       login("Student", jwtToken, dbUser)
     }

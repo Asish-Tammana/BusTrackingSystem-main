@@ -13,7 +13,7 @@ const DriverDetailsPopUp = () => {
     <PaperProvider>
       <Portal>
         <Modal visible={visible} onDismiss={hideModal} contentContainerStyle={containerStyle}>
-          <Text>Example Modal.  Click outside this area to dismiss.</Text>
+          <Text>Example Modal. Click outside this area to dismiss.</Text>
         </Modal>
       </Portal>
     </PaperProvider>

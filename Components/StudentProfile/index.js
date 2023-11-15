@@ -13,23 +13,24 @@ const StudentProfile = () => {
     dbUser = JSON.parse(dbUser)
 
     const keysObject = {
-      "user_id": "User ID",
       "user_name": "Username",
-      "PASSWORD": "Password",
       "phone_number": "Phone Number",
       "email_id": "Email ID",
       "organization_id": "Organization ID",
       "default_bus_id" : "My Bus",
       "my_stop": "My Stop"
     }
+
   
     const userDetails = [];
 
     for (const key in dbUser) {
-      userDetails.push({ key: keysObject[key] , value: dbUser[key] });
+      if (keysObject[key] !== undefined){
+        userDetails.push({ key: keysObject[key] , value: dbUser[key] });
+      }
+      
     }
 
-    console.log(userDetails)
     setProfileDetails(userDetails)
   }
 

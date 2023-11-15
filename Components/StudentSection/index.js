@@ -12,7 +12,6 @@ const Tab = createBottomTabNavigator();
 
 const StudentSection = () => {
 
-    const { logout } = useContext(AuthContext)
 
     return (
         <NavigationContainer>

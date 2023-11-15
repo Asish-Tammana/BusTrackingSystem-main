@@ -1,4 +1,4 @@
-import React, {Children, useEffect, useState} from 'react'
+import React, { useEffect, useState} from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 
@@ -44,7 +44,8 @@ export const AuthProvider = ({children}) => {
     const isLoggedIn = async() => {
         try{
             setLoadingStatus(true)
-            const tokenInserted = await AsyncStorage.getItem('jwtToken')
+            const tokenInserted = await AsyncStorage.getItem('busTrackingToken')
+            const dbDetails = await AsyncStorage.getItem('busTrackingUserDetails')
             setUserToken(tokenInserted)
             updateUserType("Student")
             setLoadingStatus(false)
@@ -63,4 +64,3 @@ export const AuthProvider = ({children}) => {
         </AuthContext.Provider>
     )
 }
-
