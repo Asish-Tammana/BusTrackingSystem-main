@@ -1,5 +1,7 @@
 import React, { useContext, useState } from 'react'
-import { View, Text, ActivityIndicator } from 'react-native'
+import { View, ActivityIndicator } from 'react-native'
+import { Text } from 'react-native-paper'
+
 import DriverView from './DriverView';
 import MapPage from './MapPage';
 import StartPage from './StartPage';
@@ -29,6 +31,7 @@ const Navigator = () => {
             return (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'white' }}>
                     <ActivityIndicator size={'large'} />
+                    <Text>Loading</Text>
                 </View>
             )
         }

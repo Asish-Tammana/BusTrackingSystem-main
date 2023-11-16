@@ -12,6 +12,7 @@ const StudentLogin = () => {
   const {login} = useContext(AuthContext)
 
   const loginPressed =  async() => {
+
     
     const userDetails = {
       user_name: usernameInput,
@@ -30,7 +31,6 @@ const StudentLogin = () => {
 
     const response = await fetch(url,options)
     const data = await response.json()
-
 
 
     const {jwtToken, dbUser} = data

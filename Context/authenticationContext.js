@@ -20,8 +20,9 @@ export const AuthProvider = ({children}) => {
 
     const login = (givenUser, jwtToken, dbUser) => {
 
-        const userDetails = JSON.stringify(dbUser)
+        
         setLoadingStatus(true)
+        const userDetails = JSON.stringify(dbUser)
         updateUserType(givenUser)
         setUserToken(jwtToken)
         AsyncStorage.setItem('busTrackingToken', jwtToken )
@@ -43,14 +44,21 @@ export const AuthProvider = ({children}) => {
 
     const isLoggedIn = async() => {
         try{
-            setLoadingStatus(true)
             const tokenInserted = await AsyncStorage.getItem('busTrackingToken')
-            const dbDetails = await AsyncStorage.getItem('busTrackingUserDetails')
+            let dbDetails = await AsyncStorage.getItem('busTrackingUserDetails')
+            dbDetails = JSON.parse(dbDetails)
             setUserToken(tokenInserted)
-            updateUserType("Student")
-            setLoadingStatus(false)
+            if(dbDetails === undefined){
+                updateUserType("notLoggedIn")
+            }else{
+                if (dbDetails.my_stop === undefined){
+                    updateUserType("Driver")
+                }else{
+                updateUserType("Student")
+                }
+            }
         } catch(e){
-            console.log("login Issue")
+            console.warn(e)
         }
     }
 

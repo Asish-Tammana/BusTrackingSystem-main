@@ -227,7 +227,7 @@ const MapPage = (props) => {
 
                 <Modal isVisible={isModalVisible}>
                     <View style={{ backgroundColor: 'white' }}>
-                    {/* <DataTable>
+                    <DataTable>
                             {
                                 driverDetails.map(each => (
                                     <DataTable.Row key={each.key}>
@@ -236,7 +236,7 @@ const MapPage = (props) => {
                                     </DataTable.Row>
                                 ))
                             }
-                        </DataTable> */}
+                        </DataTable>
                         <Button title="Close" onPress={toggleModal} />
                     </View>
                 </Modal>
