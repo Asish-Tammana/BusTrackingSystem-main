@@ -48,10 +48,10 @@ export const AuthProvider = ({children}) => {
             let dbDetails = await AsyncStorage.getItem('busTrackingUserDetails')
             dbDetails = JSON.parse(dbDetails)
             setUserToken(tokenInserted)
-            if(dbDetails === undefined){
+            if(dbDetails === null){
                 updateUserType("notLoggedIn")
             }else{
-                if (dbDetails.my_stop === undefined){
+                if (dbDetails.my_stop === null){
                     updateUserType("Driver")
                 }else{
                 updateUserType("Student")

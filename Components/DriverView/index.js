@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { View, Text, Button, TouchableHighlight, PermissionsAndroid } from 'react-native';
+import { View, Text, ToastAndroid, TouchableHighlight, PermissionsAndroid } from 'react-native';
 import { AuthContext } from '../../Context/authenticationContext';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { DataTable, Switch, Divider } from 'react-native-paper';
@@ -30,6 +30,7 @@ const DriverView = () => {
 
     const details = await AsyncStorage.getItem('busTrackingUserDetails')
     const dbUser = JSON.parse(details)
+
 
     const userDetails = [];
 
@@ -89,6 +90,44 @@ const DriverView = () => {
     )
   }
 
+  const updateCoordinatesInDB = async () => {
+    
+    const coordinateDetails = {
+      latitude: currentLatitude,
+      longitude: currentLongitude
+    }
+
+
+    
+    const jwtToken = await AsyncStorage.getItem('busTrackingToken')
+    const details = await AsyncStorage.getItem('busTrackingUserDetails')
+    const dbUser = JSON.parse(details)
+
+    const {driver_id} = dbUser
+
+    const url = `https://student-bus-locator.onrender.com/driver/${driver_id}/location/`
+
+    const options = {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `Bearer ${jwtToken}`,
+      },
+      body: JSON.stringify(coordinateDetails),
+    }
+
+    const response = await fetch(url, options)
+    if(response.ok){
+      ToastAndroid.showWithGravity(
+        'Coordinates are updating!',
+        ToastAndroid.SHORT,
+        ToastAndroid.CENTER,
+      );
+    }
+
+  }
+
 
   useEffect(() => {
     getDriverDetails()
@@ -105,6 +144,10 @@ const DriverView = () => {
       setCurrentLongitude("0")
     }
   }, [isSwitchOn])
+
+  useEffect(() => {
+    updateCoordinatesInDB()
+  }, [currentLatitude, currentLongitude])
 
   const { logout } = useContext(AuthContext)
 

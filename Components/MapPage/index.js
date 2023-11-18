@@ -84,6 +84,11 @@ const MapPage = (props) => {
         const responseData = await response.json()
         const { data } = responseData
 
+        // data.forEach(element => {
+        //     console.log(element)
+        //     return null
+        // });
+
         updateBusesList(data)
 
 
@@ -136,6 +141,11 @@ const MapPage = (props) => {
         responseData = await response.json()
         const driversList = responseData.data
 
+        // driversList.forEach(element => {
+        //     console.log(element)
+        //     return null
+        // });
+
         let driverObj = driversList.filter(each => each.driver_id == driver_id)
         driverObj = driverObj[0]
 
@@ -154,14 +164,6 @@ const MapPage = (props) => {
         }
 
         updateDriverDetails(driverDetails)
-
-        // if(driverKeysList !== undefined){
-        //     updateDriverDetails([])
-        // }
-        // else{
-        // updateDriverDetails(driverDetails)
-        // }
-
 
     }
 
@@ -205,8 +207,6 @@ const MapPage = (props) => {
         labelSize: 13,
         currentStepLabelColor: '#fe7013'
     }
-
-
 
     return (
         <ScrollView>
