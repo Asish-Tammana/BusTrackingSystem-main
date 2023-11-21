@@ -39,19 +39,21 @@ const MapPage = (props) => {
     const [currentPosition, SetCurrentPositon] = useState(0)
     const [busesList, updateBusesList] = useState([])
     const [activeBus, updateActiveBus] = useState()
+    const [seachBusInput, updateBusSearchInput] = useState("")
+    const [allStopsList, updateAllStops] = useState([])
     const [stopsList, updateStopsList] = useState(data)
+    const [driverLatitude, setDriverLatitude] = useState("0")
+    const [driverLongitude, setDriverLongitude] = useState("0")
     const [driverDetails, updateDriverDetails] = useState([])
+    const [currentStop, updateCurrentStop] = useState({})
+    const [nextStop, updateNextStop] = useState({})
     const [isModalVisible, setModalVisible] = useState(false);
+
+    let timerID;
 
     const toggleModal = () => {
         setModalVisible(!isModalVisible);
     };
-
-
-
-
-
-
 
     const updateStop = () => {
         if (currentPosition < data.length) {
@@ -60,6 +62,7 @@ const MapPage = (props) => {
     }
 
     const updateBus = (bus) => {
+        clearInterval(timerID)
         updateActiveBus(bus)
     }
 
@@ -84,13 +87,37 @@ const MapPage = (props) => {
         const responseData = await response.json()
         const { data } = responseData
 
-        // data.forEach(element => {
-        //     console.log(element)
-        //     return null
-        // });
-
         updateBusesList(data)
 
+
+    }
+
+    const getAllStops = async () => {
+
+        const url = `https://student-bus-locator.onrender.com/bus_stops/`
+        const jwtToken = await AsyncStorage.getItem('busTrackingToken')
+
+        const options = {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${jwtToken}`,
+            },
+        }
+
+        const response = await fetch(url, options)
+        if(response.ok){
+            const responseData = await response.json()
+            const {data} = responseData
+
+            updateAllStops(data)
+
+        }
+    }
+
+    const filterTheBuses = async () => {
+        
+        const filteredList = allStopsList.filter(eachStop => eachStop.stop_name.toLowerCase().includes(seachBusInput.toLowerCase()))
+        updateBusesList(filteredList)
 
     }
 
@@ -110,6 +137,7 @@ const MapPage = (props) => {
 
         updateStopsList(responseData)
 
+
     }
 
 
@@ -127,8 +155,6 @@ const MapPage = (props) => {
         let response = await fetch(url, options)
         let responseData = await response.json()
         const { driver_id } = responseData
-
-
         url = `https://student-bus-locator.onrender.com/drivers/`
         options = {
             method: 'GET',
@@ -141,18 +167,16 @@ const MapPage = (props) => {
         responseData = await response.json()
         const driversList = responseData.data
 
-        // driversList.forEach(element => {
-        //     console.log(element)
-        //     return null
-        // });
 
         let driverObj = driversList.filter(each => each.driver_id == driver_id)
         driverObj = driverObj[0]
 
+
         const driverKeysList = {
             "driver_name": "Driver Name",
             "phone_number": "Phone Number",
-            "bus_id": "Bus Number"
+            "bus_id": "Bus Number",
+            'driver_id': 'Driver ID'
         }
 
         let driverDetails = []
@@ -164,19 +188,56 @@ const MapPage = (props) => {
         }
 
         updateDriverDetails(driverDetails)
+        getDriverLocation()
 
+        
+        
+    }
+
+    const getDriverLocation = async () => {
+
+        const jwtToken = await AsyncStorage.getItem('busTrackingToken')
+         const driverObj = driverDetails.filter(each => each.key === "Driver ID")[0]
+          const driverID = driverObj['value']
+         console.log(driverDetails)
+         console.log(driverObj)
+         console.log(driverID)
+        //  const url = `https://student-bus-locator.onrender.com/driver/driver_location/${driverID}`
+        // const options = {
+        //     method: 'GET',
+        //     headers: {
+        //         Authorization: `Bearer ${jwtToken}`,
+        //     },
+        // }
+        // const response = await fetch(url, options)
+        // const responseData = await response.json()
+        // const {data} = responseData
+        // setDriverLatitude(data.latitude)
+        // setDriverLongitude(data.longitude)
     }
 
     useEffect(() => {
         setDefaultBus()
         getBusesList()
+        getAllStops()
     }, [])
 
     useEffect(() => {
         getStops()
         getDriverDetails()
         SetCurrentPositon(0)
+        if(timerID){
+            console.log(timerID)
+        }
+        // timerID = setInterval(() => {
+        //     getDriverLocation()
+        // }, 2000);
+
     }, [activeBus])
+
+    useEffect(() => {
+        filterTheBuses()
+    }, [seachBusInput])
 
 
 
@@ -212,7 +273,7 @@ const MapPage = (props) => {
         <ScrollView>
             <View style={{ flex: 1, padding: 20, height: 1100, backgroundColor: 'white' }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' }}>
-                    <BusesSelectList busesList={busesList} updateBus={updateBus} activeBus={activeBus} />
+                    <BusesSelectList busesList={busesList} updateBus={updateBus} activeBus={activeBus} updateBusSearchInput={updateBusSearchInput} seachBusInput={seachBusInput} />
                     <Button title="Driver Details" onPress={toggleModal} />
                 </View>
 

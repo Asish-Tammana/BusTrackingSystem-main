@@ -8,10 +8,11 @@ const DriverLogin = () => {
   const [usernameInput, updateUsernameInput] = React.useState("user1");
   const [passwordInput, updatePasswordInput] = React.useState("password1")
 
-  const {login} = useContext(AuthContext)
+  const {login,setLoadingStatus} = useContext(AuthContext)
 
   const loginPressed =  async() => {
     
+    setLoadingStatus(true)
     const userDetails = {
       username: usernameInput,
       password: passwordInput,
@@ -34,6 +35,7 @@ const DriverLogin = () => {
     const {jwtToken, dbUser} = data
     if (jwtToken !== undefined){
       login("Driver", jwtToken, dbUser)
+      setLoadingStatus(false)
     }
 
 

@@ -9,10 +9,11 @@ const StudentLogin = () => {
   const [usernameInput, updateUsernameInput] = React.useState("chandhana");
   const [passwordInput, updatePasswordInput] = React.useState("chandhana@2003")
 
-  const {login} = useContext(AuthContext)
+  const {login,setLoadingStatus} = useContext(AuthContext)
 
   const loginPressed =  async() => {
 
+    setLoadingStatus(true)
     
     const userDetails = {
       user_name: usernameInput,
@@ -38,6 +39,7 @@ const StudentLogin = () => {
       login("Student", jwtToken, dbUser)
     }
 
+    setLoadingStatus(false)
 
     
   }

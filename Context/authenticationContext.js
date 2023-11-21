@@ -21,24 +21,20 @@ export const AuthProvider = ({children}) => {
     const login = (givenUser, jwtToken, dbUser) => {
 
         
-        setLoadingStatus(true)
         const userDetails = JSON.stringify(dbUser)
         updateUserType(givenUser)
         setUserToken(jwtToken)
         AsyncStorage.setItem('busTrackingToken', jwtToken )
         AsyncStorage.setItem('busTrackingUserDetails', userDetails)
-        setLoadingStatus(false)
 
     }
 
     const logout = () => {
         
-        setLoadingStatus(true)
         AsyncStorage.removeItem('busTrackingToken')
         AsyncStorage.removeItem('busTrackingUserDetails')
         updateUserType(userTypes.notLoginin)
         setUserToken(null)
-        setLoadingStatus(false)  
         
     }
 
@@ -67,7 +63,7 @@ export const AuthProvider = ({children}) => {
     }, [])
 
     return(
-        <AuthContext.Provider value={{login, logout, isLoading, userToken, userType}} >
+        <AuthContext.Provider value={{login, logout, isLoading, userToken, userType, setLoadingStatus}} >
             {children}
         </AuthContext.Provider>
     )
