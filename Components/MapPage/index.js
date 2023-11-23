@@ -36,7 +36,6 @@ const data = [
 
 const MapPage = (props) => {
 
-    const [currentPosition, SetCurrentPositon] = useState(0)
     const [busesList, updateBusesList] = useState([])
     const [activeBus, updateActiveBus] = useState()
     const [seachBusInput, updateBusSearchInput] = useState("")
@@ -45,8 +44,9 @@ const MapPage = (props) => {
     const [driverLatitude, setDriverLatitude] = useState("0")
     const [driverLongitude, setDriverLongitude] = useState("0")
     const [driverDetails, updateDriverDetails] = useState([])
-    const [currentStop, updateCurrentStop] = useState({})
-    const [nextStop, updateNextStop] = useState({})
+    const [responseDriverObj, updateResponseDriverObj] = useState({})
+    const [currentPosition, updateCurrentPosition] = useState(-1)
+    const [nextStop, updateNextStop] = useState(currentPosition + 1)
     const [isModalVisible, setModalVisible] = useState(false);
 
     let timerID;
@@ -57,7 +57,7 @@ const MapPage = (props) => {
 
     const updateStop = () => {
         if (currentPosition < data.length) {
-            SetCurrentPositon(currentPosition + 1)
+            updateCurrentPosition(currentPosition + 1)
         }
     }
 
@@ -105,9 +105,9 @@ const MapPage = (props) => {
         }
 
         const response = await fetch(url, options)
-        if(response.ok){
+        if (response.ok) {
             const responseData = await response.json()
-            const {data} = responseData
+            const { data } = responseData
 
             updateAllStops(data)
 
@@ -115,7 +115,7 @@ const MapPage = (props) => {
     }
 
     const filterTheBuses = async () => {
-        
+
         const filteredList = allStopsList.filter(eachStop => eachStop.stop_name.toLowerCase().includes(seachBusInput.toLowerCase()))
         updateBusesList(filteredList)
 
@@ -136,6 +136,8 @@ const MapPage = (props) => {
         const responseData = await response.json()
 
         updateStopsList(responseData)
+        // updateCurrentStop(0)
+        // updateNextStop(1)
 
 
     }
@@ -170,6 +172,7 @@ const MapPage = (props) => {
 
         let driverObj = driversList.filter(each => each.driver_id == driver_id)
         driverObj = driverObj[0]
+        updateResponseDriverObj(driverObj)
 
 
         const driverKeysList = {
@@ -188,50 +191,95 @@ const MapPage = (props) => {
         }
 
         updateDriverDetails(driverDetails)
-        getDriverLocation()
+        // await getDriverLocation()
 
-        
-        
+
+
     }
+
+    
+
+    const withIn100mRadius = (centerLatitude, centerLongitude, userLatitude, userLongitude) => {
+
+        const x = (centerLatitude - userLatitude) ** 2 + (centerLongitude - userLongitude) ** 2
+        const distance = Math.sqrt(x);
+
+        return distance <= 0.0005;
+    }
+
 
     const getDriverLocation = async () => {
 
         const jwtToken = await AsyncStorage.getItem('busTrackingToken')
-         const driverObj = driverDetails.filter(each => each.key === "Driver ID")[0]
-          const driverID = driverObj['value']
-         console.log(driverDetails)
-         console.log(driverObj)
-         console.log(driverID)
-        //  const url = `https://student-bus-locator.onrender.com/driver/driver_location/${driverID}`
-        // const options = {
-        //     method: 'GET',
-        //     headers: {
-        //         Authorization: `Bearer ${jwtToken}`,
-        //     },
-        // }
-        // const response = await fetch(url, options)
-        // const responseData = await response.json()
-        // const {data} = responseData
-        // setDriverLatitude(data.latitude)
-        // setDriverLongitude(data.longitude)
+        const driverObj = driverDetails.filter(each => each.key === "Driver ID")[0]
+        const { driver_id } = responseDriverObj
+        const driverID = driver_id === undefined ? activeBus : driver_id
+        const url = `https://student-bus-locator.onrender.com/driver/driver_location/${driverID}`
+        const options = {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${jwtToken}`,
+            },
+        }
+
+        const response = await fetch(url, options)
+        const responseData = await response.json()
+
+        console.warn = (message, ...args) => {
+            if (message.includes('JSON Parse error')) {
+                return;
+            }
+
+        };
+        const { data } = responseData
+        setDriverLatitude(data.latitude)
+        setDriverLongitude(data.longitude)
+
+        const nextStopObj = stopsList[nextStop]
+
+        const { latitude, longitude } = nextStopObj
+
+        if(withIn100mRadius(driverLatitude, driverLongitude, latitude, longitude)){
+            updateCurrentPosition(currentPosition + 1)
+        }
     }
 
     useEffect(() => {
-        setDefaultBus()
-        getBusesList()
-        getAllStops()
+        updateNextStop(nextStop + 1)
+    }, [currentPosition])
+
+    useEffect(() => {
+        const fetchData = async () => {
+            await setDefaultBus()
+            await getBusesList()
+            await getAllStops()
+        }
+
+
+        timerID = setInterval(() => {
+            getstopUpdate()
+        }, 2000);
+
+        fetchData();
     }, [])
 
     useEffect(() => {
-        getStops()
-        getDriverDetails()
-        SetCurrentPositon(0)
-        if(timerID){
-            console.log(timerID)
+
+        const fetchData = async () => {
+            await getStops()
+            await getDriverDetails()
+            // await getDriverLocation()
         }
+
+        // if (timerID) {
+        //     clearInterval(timerID)
+        // }
         // timerID = setInterval(() => {
         //     getDriverLocation()
         // }, 2000);
+
+        fetchData();
+
 
     }, [activeBus])
 
@@ -288,7 +336,7 @@ const MapPage = (props) => {
 
                 <Modal isVisible={isModalVisible}>
                     <View style={{ backgroundColor: 'white' }}>
-                    <DataTable>
+                        <DataTable>
                             {
                                 driverDetails.map(each => (
                                     <DataTable.Row key={each.key}>
@@ -303,8 +351,8 @@ const MapPage = (props) => {
                 </Modal>
 
 
-                <Button title="Next" onPress={updateStop} />
-                <Text> </Text>
+                {/* <Button title="Next" onPress={updateStop} />
+                <Text> </Text> */}
             </View>
         </ScrollView>
     );
