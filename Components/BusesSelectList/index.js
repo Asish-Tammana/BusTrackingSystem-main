@@ -12,6 +12,7 @@ const BusesSelectList = (props) => {
         <View>
             <SelectDropdown data={uniqueNames} 
             defaultValue={activeBus}
+            defaultButtonText= {activeBus}
             search='true'
             onSelect={(selectedItem) => {
                 updateBus(selectedItem)

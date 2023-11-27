@@ -2,9 +2,7 @@ import StartPage from '../StartPage';
 import SelectUserPage from '../SelectUserPage';
 import StudentAuthenticationPage from '../StudentAuthenticationPage';
 import DriverLogin from '../DriverLogin';
-import DriverView from '../DriverView';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import MapPage from '../MapPage';
 import { NavigationContainer } from '@react-navigation/native';
 
 

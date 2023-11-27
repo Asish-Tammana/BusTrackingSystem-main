@@ -2,7 +2,6 @@ import React, { useState, useContext, useEffect } from 'react';
 import { ScrollView, View, Text, Button, StyleSheet } from 'react-native';
 import StepIndicator from 'react-native-step-indicator';
 import BusesSelectList from '../BusesSelectList'
-import { AuthContext } from '../../Context/authenticationContext';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import Modal from "react-native-modal";
 import { DataTable } from 'react-native-paper';
@@ -34,7 +33,7 @@ const data = [
 ]
 
 
-const MapPage = (props) => {
+const MapPage = () => {
 
     const [busesList, updateBusesList] = useState([])
     const [activeBus, updateActiveBus] = useState()
@@ -45,8 +44,8 @@ const MapPage = (props) => {
     const [driverLongitude, setDriverLongitude] = useState("0")
     const [driverDetails, updateDriverDetails] = useState([])
     const [responseDriverObj, updateResponseDriverObj] = useState({})
-    const [currentPosition, updateCurrentPosition] = useState(-1)
-    const [nextStop, updateNextStop] = useState(currentPosition + 1)
+    const [currentPosition, updateCurrentPosition] = useState(0)
+    const [nextStop, updateNextStop] = useState(1)
     const [isModalVisible, setModalVisible] = useState(false);
 
     let timerID;
@@ -55,11 +54,6 @@ const MapPage = (props) => {
         setModalVisible(!isModalVisible);
     };
 
-    const updateStop = () => {
-        if (currentPosition < data.length) {
-            updateCurrentPosition(currentPosition + 1)
-        }
-    }
 
     const updateBus = (bus) => {
         clearInterval(timerID)
@@ -136,8 +130,6 @@ const MapPage = (props) => {
         const responseData = await response.json()
 
         updateStopsList(responseData)
-        // updateCurrentStop(0)
-        // updateNextStop(1)
 
 
     }
@@ -191,13 +183,28 @@ const MapPage = (props) => {
         }
 
         updateDriverDetails(driverDetails)
-        // await getDriverLocation()
+        await getDriverLocation()
 
 
 
     }
 
-    
+    const sendMessage = async () => {
+
+        let dbUser = await AsyncStorage.getItem('busTrackingUserDetails')
+        dbUser = JSON.parse(dbUser)
+
+        const isNextStop = dbUser.my_stop === stopsList[nextStop].stop_name
+        console.log(`${dbUser.my_stop} ${stopsList[nextStop].stop_name} ${isNextStop}`)
+
+        if(isNextStop){
+            const url = "https://student-bus-locator.onrender.com/sms"
+
+            const response = await fetch(url)
+        }
+
+    }
+
 
     const withIn100mRadius = (centerLatitude, centerLongitude, userLatitude, userLongitude) => {
 
@@ -207,12 +214,12 @@ const MapPage = (props) => {
         return distance <= 0.0005;
     }
 
-
     const getDriverLocation = async () => {
 
         const jwtToken = await AsyncStorage.getItem('busTrackingToken')
         const driverObj = driverDetails.filter(each => each.key === "Driver ID")[0]
-        const { driver_id } = responseDriverObj
+        const driver_id = driverObj['value'] 
+
         const driverID = driver_id === undefined ? activeBus : driver_id
         const url = `https://student-bus-locator.onrender.com/driver/driver_location/${driverID}`
         const options = {
@@ -222,6 +229,7 @@ const MapPage = (props) => {
             },
         }
 
+
         const response = await fetch(url, options)
         const responseData = await response.json()
 
@@ -229,8 +237,8 @@ const MapPage = (props) => {
             if (message.includes('JSON Parse error')) {
                 return;
             }
-
         };
+
         const { data } = responseData
         setDriverLatitude(data.latitude)
         setDriverLongitude(data.longitude)
@@ -239,13 +247,18 @@ const MapPage = (props) => {
 
         const { latitude, longitude } = nextStopObj
 
-        if(withIn100mRadius(driverLatitude, driverLongitude, latitude, longitude)){
+        if (withIn100mRadius(driverLatitude, driverLongitude, latitude, longitude)) {
             updateCurrentPosition(currentPosition + 1)
         }
     }
 
     useEffect(() => {
-        updateNextStop(nextStop + 1)
+        const updateData = async () => {
+            await updateNextStop(currentPosition + 1)
+            await sendMessage()
+        }
+
+        updateData()
     }, [currentPosition])
 
     useEffect(() => {
@@ -255,11 +268,6 @@ const MapPage = (props) => {
             await getAllStops()
         }
 
-
-        timerID = setInterval(() => {
-            getstopUpdate()
-        }, 2000);
-
         fetchData();
     }, [])
 
@@ -268,15 +276,15 @@ const MapPage = (props) => {
         const fetchData = async () => {
             await getStops()
             await getDriverDetails()
-            // await getDriverLocation()
+            await getDriverLocation()
         }
 
-        // if (timerID) {
-        //     clearInterval(timerID)
-        // }
-        // timerID = setInterval(() => {
-        //     getDriverLocation()
-        // }, 2000);
+        if (timerID) {
+            clearInterval(timerID)
+        }
+        timerID = setInterval(() => {
+            getDriverLocation()
+        }, 2000);
 
         fetchData();
 
@@ -308,13 +316,14 @@ const MapPage = (props) => {
         stepIndicatorUnFinishedColor: '#ffffff',
         stepIndicatorCurrentColor: '#ffffff',
         stepIndicatorLabelFontSize: 13,
-        currentStepIndicatorLabelFontSize: 13,
+        currentStepIndicatorLabelFontSize: 16,
         stepIndicatorLabelCurrentColor: '#fe7013',
         stepIndicatorLabelFinishedColor: '#ffffff',
         stepIndicatorLabelUnFinishedColor: '#aaaaaa',
         labelColor: '#999999',
         labelSize: 13,
         currentStepLabelColor: '#fe7013'
+
     }
 
     return (
@@ -349,10 +358,6 @@ const MapPage = (props) => {
                         <Button title="Close" onPress={toggleModal} />
                     </View>
                 </Modal>
-
-
-                {/* <Button title="Next" onPress={updateStop} />
-                <Text> </Text> */}
             </View>
         </ScrollView>
     );
